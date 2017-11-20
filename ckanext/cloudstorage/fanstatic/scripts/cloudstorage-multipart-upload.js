@@ -22,7 +22,7 @@ ckan.module('cloudstorage-multipart-upload', function($, _) {
         _uploadName: null,
         _uploadedParts: null,
         _clickedBtn: null,
-        _redirect_url: null;
+        _redirect_url: null,
 
         initialize: function() {
             $.proxyAll(this, /_on/);
@@ -276,6 +276,7 @@ ckan.module('cloudstorage-multipart-upload', function($, _) {
             formData.url = file.name;
             formData.package_id = this.options.packageId;
             formData.size = file.size;
+            formData.url_type = 'upload';
             var action = formData.id ? 'resource_update' : 'resource_create';
             var url = this._form.attr('action') || window.location.href;
             this.sandbox.client.call(
@@ -365,6 +366,7 @@ ckan.module('cloudstorage-multipart-upload', function($, _) {
             var data_dict = {
                 'uploadId': this._uploadId,
                 'id': this._resourceId,
+                'save_action': this._clickedBtn
             }
             this.sandbox.client.call(
                 'POST',
