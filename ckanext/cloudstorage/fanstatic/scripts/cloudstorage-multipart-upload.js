@@ -361,6 +361,8 @@ ckan.module("cloudstorage-multipart-upload", function($, _) {
     },
 
     _onPrepareUpload: function(file, id) {
+      var csrf_field = $('meta[name=csrf_field_name]').attr('content');
+      var csrf_token = $('meta[name='+ csrf_field +']').attr('content');
       return $.ajax({
         method: "POST",
         url: this.sandbox.client.url(
@@ -370,7 +372,12 @@ ckan.module("cloudstorage-multipart-upload", function($, _) {
           id: id,
           name: encodeURIComponent(file.name),
           size: file.size
-        })
+        },
+      ),
+        contentType: "application/json",
+        headers: {
+          'X-CSRFToken': csrf_token
+        }
       });
     },
 
