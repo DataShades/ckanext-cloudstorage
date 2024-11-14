@@ -120,7 +120,7 @@ def initiate_multipart(context, data_dict):
             {
                 "uploader": [
                     "Must be ResourceCloudStorage or its subclass, not"
-                    f" {type(uploadev)}"
+                    f" {type(uploader)}"
                 ]
             }
         )
