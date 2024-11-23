@@ -4,7 +4,7 @@ from setuptools import find_packages, setup
 
 setup(
     name="ckanext-cloudstorage",
-    version="0.2.1",
+    version="0.3.3",
     description="Cloud storage for CKAN",
     classifiers=[],
     keywords="",
