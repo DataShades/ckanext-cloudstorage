@@ -53,6 +53,8 @@ ckan.module("cloudstorage-multipart-upload", function($, _) {
       this._resumeBtn.hide();
 
       var self = this;
+      var csrf_field = $('meta[name=csrf_field_name]').attr('content');
+      this._frm_csrf_token = $('meta[name='+ csrf_field +']').attr('content');
 
       this._file.fileupload({
         url: this.sandbox.client.url(
@@ -67,7 +69,10 @@ ckan.module("cloudstorage-multipart-upload", function($, _) {
         progressall: this._onFileUploadProgress,
         done: this._onFinishUpload,
         fail: this._onUploadFail,
-        always: this._onAnyEndedUpload
+        always: this._onAnyEndedUpload,
+        headers: {
+          'X-CSRFToken': this._frm_csrf_token
+        }
       });
 
       this._save.on("click", this._onSaveClick);
@@ -347,7 +352,7 @@ ckan.module("cloudstorage-multipart-upload", function($, _) {
       var id = this._id.val();
       var self = this;
       if (this._uploadId === null)
-        this._onPrepareUpload(file, id).then(
+        this._onPrepareUpload(file, id, this._frm_csrf_token).then(
           function(data) {
             self._uploadId = data.result.id;
             self.el.trigger("multipartstarted.cloudstorage");
@@ -360,9 +365,7 @@ ckan.module("cloudstorage-multipart-upload", function($, _) {
       else this.el.trigger("multipartstarted.cloudstorage");
     },
 
-    _onPrepareUpload: function(file, id) {
-      var csrf_field = $('meta[name=csrf_field_name]').attr('content');
-      var csrf_token = $('meta[name='+ csrf_field +']').attr('content');
+    _onPrepareUpload: function(file, id, csrf) {
       return $.ajax({
         method: "POST",
         url: this.sandbox.client.url(
@@ -376,7 +379,7 @@ ckan.module("cloudstorage-multipart-upload", function($, _) {
       ),
         contentType: "application/json",
         headers: {
-          'X-CSRFToken': csrf_token
+          'X-CSRFToken': csrf
         }
       });
     },
