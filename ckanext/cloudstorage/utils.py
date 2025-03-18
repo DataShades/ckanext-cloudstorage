@@ -114,15 +114,8 @@ def migrate(path, single_id):
 
 
 def resource_download(id, resource_id, filename=None):
-    context = {
-        "model": model,
-        "session": model.Session,
-        "user": tk.c.user or tk.c.author,
-        "auth_user_obj": tk.c.userobj,
-    }
-
     try:
-        resource = tk.get_action("resource_show")(context, {"id": resource_id})
+        resource = tk.get_action("resource_show")({}, {"id": resource_id})
     except tk.ObjectNotFound:
         return base.abort(404, tk._("Resource not found"))
     except tk.NotAuthorized:
