@@ -171,10 +171,10 @@ class CloudStorage(object):
                 return False
             try:
                 # Yes? Is the boto package available?
-                import boto
+                import boto3
 
                 # Shut the linter up.
-                assert boto
+                assert boto3
                 return True
             except ImportError:
                 pass
@@ -424,30 +424,23 @@ class ResourceCloudStorage(CloudStorage):
                 ),
             )
         elif self.can_use_advanced_aws and self.use_secure_urls:
-            from boto.s3.connection import S3Connection
+            from boto3 import client
+            from boto3.session import Config
+            # endpoint_url = self.driver_options["host"] ?
+            s3 = client(
+                "s3",
+                # endpoint_url=endpoint_url,
+                aws_access_key_id=self.driver_options["key"],
+                aws_secret_access_key=self.driver_options["secret"],
+                config=Config(signature_version="s3v4"),
 
-            os.environ["S3_USE_SIGV4"] = "True"
-            s3_connection = S3Connection(
-                self.driver_options["key"],
-                self.driver_options["secret"],
-                host=self.driver_options["host"],
             )
-
-            if "region_name" in self.driver_options.keys():
-                s3_connection.auth_region_name = self.driver_options[
-                    "region_name"
-                ]
-
-            generate_url_params = {
-                "expires_in": config_secure_ttl(),
-                "method": "GET",
-                "bucket": self.container_name,
-                "key": path,
-            }
-
-            if content_type:
-                generate_url_params["response_headers"] = {"Content-Type": content_type}
-            return s3_connection.generate_url_sigv4(**generate_url_params)
+            resp = s3.generate_presigned_url(
+                "get_object",
+                Params={"Bucket": self.container_name, "Key": path},
+                ExpiresIn=config_secure_ttl(),
+            )
+            return resp
 
         # Find the object for the given key.
         try:
