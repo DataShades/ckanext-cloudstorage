@@ -33,9 +33,7 @@ DEFAULT_SECURE_TTL = 3600
 
 
 def config_secure_ttl():
-    return p.toolkit.asint(p.toolkit.config.get(
-        CONFIG_SECURE_TTL, DEFAULT_SECURE_TTL
-    ))
+    return p.toolkit.asint(p.toolkit.config.get(CONFIG_SECURE_TTL, DEFAULT_SECURE_TTL))
 
 
 def _get_underlying_file(wrapper):
@@ -132,9 +130,7 @@ class CloudStorage(object):
         provider instead of removing them when a resource/package is deleted,
         otherwise `False`.
         """
-        return p.toolkit.asbool(
-            config.get("ckanext.cloudstorage.leave_files", False)
-        )
+        return p.toolkit.asbool(config.get("ckanext.cloudstorage.leave_files", False))
 
     @property
     def can_use_advanced_azure(self):
@@ -232,9 +228,7 @@ class ResourceCloudStorage(CloudStorage):
             # Apparently, this is a created-but-not-commited resource whose
             # file upload has been canceled. We're copying the behaviour of
             # ckaenxt-s3filestore here.
-            old_resource = model.Session.query(model.Resource).get(
-                resource["id"]
-            )
+            old_resource = model.Session.query(model.Resource).get(resource["id"])
 
             self.old_filename = old_resource.url
             resource["url_type"] = ""
@@ -267,9 +261,7 @@ class ResourceCloudStorage(CloudStorage):
                 if self.guess_mimetype:
                     content_type, _ = mimetypes.guess_type(self.filename)
                     if content_type:
-                        content_settings = ContentSettings(
-                            content_type=content_type
-                        )
+                        content_settings = ContentSettings(content_type=content_type)
                 return blob_service.create_blob_from_stream(
                     container_name=self.container_name,
                     blob_name=self.path_from_filename(id, self.filename),
@@ -298,18 +290,14 @@ class ResourceCloudStorage(CloudStorage):
                             file_size = self.file_upload.tell()
                             self.file_upload.seek(0, os.SEEK_SET)
 
-                        log.debug(
-                            "\t - File size %s: %s", self.filename, file_size
-                        )
+                        log.debug("\t - File size %s: %s", self.filename, file_size)
                         if file_size == int(cloud_object.size):
                             log.debug(
                                 "\t Size fits, checking hash %s: %s",
                                 object_name,
                                 cloud_object.hash,
                             )
-                            hash_file = hashlib.md5(
-                                self.file_upload.read()
-                            ).hexdigest()
+                            hash_file = hashlib.md5(self.file_upload.read()).hexdigest()
                             self.file_upload.seek(0, os.SEEK_SET)
                             log.debug(
                                 "\t - File hash %s: %s",
@@ -319,8 +307,7 @@ class ResourceCloudStorage(CloudStorage):
                             # basic hash
                             if hash_file == cloud_object.hash:
                                 log.debug(
-                                    "\t => File found, matching hash, skipping"
-                                    " upload"
+                                    "\t => File found, matching hash, skipping upload"
                                 )
                                 return
                             # multipart hash
@@ -332,18 +319,14 @@ class ResourceCloudStorage(CloudStorage):
                             )
                             if multi_hash_file == cloud_object.hash:
                                 log.debug(
-                                    "\t => File found, matching hash, skipping"
-                                    " upload"
+                                    "\t => File found, matching hash, skipping upload"
                                 )
                                 return
                         log.debug(
-                            "\t Resource found in the cloud but outdated,"
-                            " uploading"
+                            "\t Resource found in the cloud but outdated, uploading"
                         )
                     except ObjectDoesNotExistError:
-                        log.debug(
-                            "\t Resource not found in the cloud, uploading"
-                        )
+                        log.debug("\t Resource not found in the cloud, uploading")
 
                     # If it's temporary file, we'd better convert it
                     # into FileIO. Otherwise libcloud will iterate
@@ -363,9 +346,7 @@ class ResourceCloudStorage(CloudStorage):
                     self.container.upload_object_via_stream(
                         iterator=file_upload_iter, object_name=object_name
                     )
-                    log.debug(
-                        "\t => UPLOADED %s: %s", self.filename, object_name
-                    )
+                    log.debug("\t => UPLOADED %s: %s", self.filename, object_name)
                 except (ValueError, types.InvalidCredsError) as err:
                     log.error(traceback.format_exc())
                     raise err
@@ -426,15 +407,23 @@ class ResourceCloudStorage(CloudStorage):
         elif self.can_use_advanced_aws and self.use_secure_urls:
             from boto3 import client
             from boto3.session import Config
-            # endpoint_url = self.driver_options["host"] ?
-            s3 = client(
-                "s3",
-                # endpoint_url=endpoint_url,
-                aws_access_key_id=self.driver_options["key"],
-                aws_secret_access_key=self.driver_options["secret"],
-                config=Config(signature_version="s3v4"),
 
-            )
+            params = {
+                "aws_access_key_id": self.driver_options["key"],
+                "aws_secret_access_key": self.driver_options["secret"],
+                "config": Config(signature_version="s3v4"),
+            }
+            if "region" in self.driver_options:
+                region = self.driver_options["region"]
+                params.update(
+                    {
+                        "region_name": region,
+                        "endpoint_url": f"https://s3.{region}.amazonaws.com",
+                    }
+                )
+
+            # endpoint_url = self.driver_options["host"] ?
+            s3 = client("s3", **params)
             resp = s3.generate_presigned_url(
                 "get_object",
                 Params={"Bucket": self.container_name, "Key": path},
