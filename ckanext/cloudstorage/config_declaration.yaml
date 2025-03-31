@@ -1,0 +1,25 @@
+version: 1
+groups:
+  - annotation: ckanext-cloudstorage
+    options:
+      - key: ckanext.cloudstorage.driver_options
+        required: true
+
+      - key: ckanext.cloudstorage.driver
+        required: true
+
+      - key: ckanext.cloudstorage.container_name
+        required: true
+
+      - key: ckanext.cloudstorage.secure_ttl
+        type: int
+        default: 3600
+
+      - key: ckanext.cloudstorage.use_secure_urls
+        type: bool
+
+      - key: ckanext.cloudstorage.leave_files
+        type: bool
+
+      - key: ckanext.cloudstorage.guess_mimetype
+        type: bool

@@ -2,18 +2,17 @@
 import os.path
 
 from ckan import plugins
-
+import ckan.plugins.toolkit as tk
 from ckanext.cloudstorage import helpers, storage
 from ckanext.cloudstorage.logic.action import get_actions
 from ckanext.cloudstorage.logic.auth import get_auth_functions
 
-if plugins.toolkit.check_ckan_version("2.9"):
-    from ckanext.cloudstorage.plugin.flask_plugin import MixinPlugin
-else:
-    from ckanext.cloudstorage.plugin.pylons_plugin import MixinPlugin
+from ckanext.cloudstorage.cli import get_commands
+from ckanext.cloudstorage.views import get_blueprints
 
 
-class CloudStoragePlugin(MixinPlugin, plugins.SingletonPlugin):
+@tk.blanket.config_declarations
+class CloudStoragePlugin(plugins.SingletonPlugin):
     plugins.implements(plugins.IUploader)
     plugins.implements(plugins.IConfigurable)
     plugins.implements(plugins.IConfigurer)
@@ -21,12 +20,24 @@ class CloudStoragePlugin(MixinPlugin, plugins.SingletonPlugin):
     plugins.implements(plugins.ITemplateHelpers)
     plugins.implements(plugins.IAuthFunctions)
     plugins.implements(plugins.IResourceController, inherit=True)
+    plugins.implements(plugins.IBlueprint)
+    plugins.implements(plugins.IClick)
+
+    # IBlueprint
+
+    def get_blueprint(self):
+        return get_blueprints()
+
+    # IClick
+
+    def get_commands(self):
+        return get_commands()
 
     # IConfigurer
 
     def update_config(self, config):
-        plugins.toolkit.add_template_directory(config, "../templates")
-        plugins.toolkit.add_resource("../fanstatic/scripts", "cloudstorage-js")
+        plugins.toolkit.add_template_directory(config, "templates")
+        plugins.toolkit.add_resource("fanstatic/scripts", "cloudstorage-js")
 
     # ITemplateHelpers
 

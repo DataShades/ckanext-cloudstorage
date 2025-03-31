@@ -20,7 +20,8 @@ from libcloud.storage.providers import get_driver
 from libcloud.storage.types import ObjectDoesNotExistError, Provider
 from werkzeug.datastructures import FileStorage as FlaskFileStorage
 
-config = p.toolkit.config
+import ckan.plugins.toolkit as tk
+from . import config
 
 log = logging.getLogger(__name__)
 
@@ -33,7 +34,7 @@ DEFAULT_SECURE_TTL = 3600
 
 
 def config_secure_ttl():
-    return p.toolkit.asint(p.toolkit.config.get(CONFIG_SECURE_TTL, DEFAULT_SECURE_TTL))
+    return config.secure_ttl()
 
 
 def _get_underlying_file(wrapper):
@@ -89,7 +90,7 @@ class CloudStorage(object):
         A dictionary of options ckanext-cloudstorage has been configured to
         pass to the apache-libcloud driver.
         """
-        return literal_eval(config["ckanext.cloudstorage.driver_options"])
+        return config.options()
 
     @property
     def driver_name(self):
@@ -103,7 +104,7 @@ class CloudStorage(object):
             This value is used to lookup the apache-libcloud driver to use
             based on the Provider enum.
         """
-        return config["ckanext.cloudstorage.driver"]
+        return config.driver()
 
     @property
     def container_name(self):
@@ -111,7 +112,7 @@ class CloudStorage(object):
         The name of the container (also called buckets on some providers)
         ckanext-cloudstorage is configured to use.
         """
-        return config["ckanext.cloudstorage.container_name"]
+        return config.container()
 
     @property
     def use_secure_urls(self):
@@ -119,9 +120,7 @@ class CloudStorage(object):
         `True` if ckanext-cloudstroage is configured to generate secure
         one-time URLs to resources, `False` otherwise.
         """
-        return p.toolkit.asbool(
-            config.get("ckanext.cloudstorage.use_secure_urls", False)
-        )
+        return config.use_secure()
 
     @property
     def leave_files(self):
@@ -130,7 +129,7 @@ class CloudStorage(object):
         provider instead of removing them when a resource/package is deleted,
         otherwise `False`.
         """
-        return p.toolkit.asbool(config.get("ckanext.cloudstorage.leave_files", False))
+        return config.leave_files()
 
     @property
     def can_use_advanced_azure(self):
@@ -183,9 +182,7 @@ class CloudStorage(object):
         `True` if ckanext-cloudstorage is configured to guess mime types,
         `False` otherwise.
         """
-        return p.toolkit.asbool(
-            config.get("ckanext.cloudstorage.guess_mimetype", False)
-        )
+        return config.guess_mimetype()
 
 
 class ResourceCloudStorage(CloudStorage):
