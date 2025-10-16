@@ -1,6 +1,5 @@
 ckan.module("cloudstorage-multipart-upload", function ($, _) {
   "use strict";
-
   return {
     options: {
       cloud: "S3",
@@ -32,7 +31,9 @@ ckan.module("cloudstorage-multipart-upload", function ($, _) {
       // order to prevent type-coercion, so we have to strip it
       this.options.packageId = this.options.packageId.slice(1);
       this._form = this.$("form");
-      this._file = $("#field-resource-upload");
+      this._file = this._form.find(
+        "#field-resource-upload,#field-image-upload",
+      );
       this._url = $("#field-resource-url");
       this._save = $("[name=save]");
       this._id = $("input[name=id]");
