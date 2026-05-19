@@ -420,7 +420,6 @@ ckan.module("cloudstorage-multipart-upload", function ($, _) {
         data_dict,
         function (data) {
           self._progress.hide("fast");
-          self._onDisableSave(false);
 
           if (self._resourceId && self._packageId) {
             self.sandbox.notify(
@@ -428,7 +427,7 @@ ckan.module("cloudstorage-multipart-upload", function ($, _) {
               self.i18n("upload_completed"),
               "success",
             );
-            // self._form.remove();
+
             if (self._clickedBtn == "again") {
               this._redirect_url = self.sandbox.url(
                 "/dataset/" + self._packageId + "/resource/new",
